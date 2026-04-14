@@ -209,8 +209,8 @@ export default function SkillTree({ data }: { data: TreeData }) {
             </div>
 
             <div
-              className="absolute left-1/2 top-1/2 h-[760px] w-[1120px] -translate-x-1/2 -translate-y-1/2 select-none"
-              style={{ transform: `translate(-50%, -50%) translate(${offset.x}px, ${offset.y}px)` }}
+              className="absolute inset-0 select-none"
+              style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(1.03)`, transformOrigin: 'center center' }}
             >
               <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
                 {data.links.map((link) => {
@@ -278,7 +278,7 @@ export default function SkillTree({ data }: { data: TreeData }) {
                     style={{
                       left: `${node.position.x}%`,
                       top: `${node.position.y}%`,
-                      width: '210px',
+                      width: '190px',
                       borderColor: active || connected ? color : 'rgba(255,255,255,0.12)',
                       background: active ? 'rgba(14, 25, 44, 0.96)' : 'rgba(14, 25, 44, 0.76)',
                       boxShadow: active ? `0 0 24px ${color}2e` : 'none',
@@ -302,9 +302,9 @@ export default function SkillTree({ data }: { data: TreeData }) {
             {'summary' in activeEntity ? activeEntity.summary : root.summary}
           </p>
 
-          {'tags' in activeEntity && (
+          {'tags' in activeEntity && Array.isArray(activeEntity.tags) && (
             <div className="mt-6 flex flex-wrap gap-2">
-              {activeEntity.tags.map((tag) => (
+              {activeEntity.tags.map((tag: string) => (
                 <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200">
                   {tag}
                 </span>
