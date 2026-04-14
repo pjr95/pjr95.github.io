@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import {
   Background,
+  BaseEdge,
   Controls,
   Handle,
-  MarkerType,
   Position,
   ReactFlow,
+  getBezierPath,
   type Edge,
+  type EdgeProps,
   type Node,
   type NodeProps,
 } from '@xyflow/react';
@@ -62,7 +64,7 @@ const colorMap: Record<string, string> = {
 const root = {
   id: 'root',
   label: 'Pablo Romero',
-  position: { x: 50, y: 48 },
+  position: { x: 50, y: 44 },
   summary:
     'AI and ML leader with a systems mindset, an educator’s instinct for clarity, and an economics-rooted way of thinking about decisions, tradeoffs, and impact.',
 };
@@ -77,6 +79,7 @@ function GraphCardNode({ data }: NodeProps<Node<GraphNodeData>>) {
   return (
     <>
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
       <button
         type="button"
         onClick={() => data.onSelect(data.id)}
@@ -99,11 +102,25 @@ function GraphCardNode({ data }: NodeProps<Node<GraphNodeData>>) {
         )}
       </button>
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
     </>
   );
 }
 
+function SoftEdge({ id, sourceX, sourceY, targetX, targetY, style }: EdgeProps) {
+  const [path] = getBezierPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    curvature: 0.32,
+  });
+
+  return <BaseEdge id={id} path={path} style={style} />;
+}
+
 const nodeTypes = { card: GraphCardNode };
+const edgeTypes = { soft: SoftEdge };
 
 export default function SkillTree({ data }: { data: TreeData }) {
   const [activeId, setActiveId] = useState<string>('root');
@@ -202,19 +219,13 @@ export default function SkillTree({ data }: { data: TreeData }) {
         id: `${link.from}-${link.to}`,
         source: link.from,
         target: link.to,
-        type: 'smoothstep',
+        type: 'soft',
         animated: false,
         selectable: false,
         style: {
           stroke,
-          strokeWidth: isRootLink ? 2.2 : isBranchToNode ? 1.7 : 1.1,
-          opacity: isCrossBranch ? 0.8 : 1,
-        },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: stroke,
-          width: isCrossBranch ? 14 : 18,
-          height: isCrossBranch ? 14 : 18,
+          strokeWidth: isRootLink ? 2.4 : isBranchToNode ? 1.8 : 1.05,
+          opacity: isCrossBranch ? 0.55 : 0.95,
         },
       } satisfies Edge;
     });
@@ -307,6 +318,8 @@ export default function SkillTree({ data }: { data: TreeData }) {
               nodes={graphNodes}
               edges={graphEdges}
               nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              nodeOrigin={[0.5, 0.5]}
               fitView
               fitViewOptions={{ padding: 0.16, minZoom: 0.72 }}
               minZoom={0.55}
@@ -317,7 +330,7 @@ export default function SkillTree({ data }: { data: TreeData }) {
               zoomOnDoubleClick={false}
               panOnDrag
               className="bg-transparent"
-              defaultEdgeOptions={{ type: 'smoothstep' }}
+              defaultEdgeOptions={{ type: 'soft' }}
             >
               <Background color="rgba(255,255,255,0.08)" gap={22} size={1} />
               <Controls showInteractive={false} position="bottom-right" />
