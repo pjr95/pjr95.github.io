@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import dagre from 'dagre';
 import {
   Background,
   BaseEdge,
@@ -14,20 +15,18 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-type Point = { x: number; y: number };
-
 type Branch = {
   id: string;
   label: string;
   color: string;
-  position: Point;
+  position: { x: number; y: number };
 };
 
 type TreeNode = {
   id: string;
   branch: string;
   label: string;
-  position: Point;
+  position: { x: number; y: number };
   summary: string;
   tags: string[];
 };
@@ -64,13 +63,15 @@ const colorMap: Record<string, string> = {
 const root = {
   id: 'root',
   label: 'Pablo Romero',
-  position: { x: 50, y: 44 },
   summary:
     'AI and ML leader with a systems mindset, an educator’s instinct for clarity, and an economics-rooted way of thinking about decisions, tradeoffs, and impact.',
 };
 
-const CANVAS_WIDTH = 1200;
-const CANVAS_HEIGHT = 760;
+const nodeDimensions = {
+  root: { width: 220, height: 94 },
+  branch: { width: 180, height: 58 },
+  node: { width: 220, height: 96 },
+};
 
 function GraphCardNode({ data }: NodeProps<Node<GraphNodeData>>) {
   const isRoot = data.kind === 'root';
@@ -84,8 +85,8 @@ function GraphCardNode({ data }: NodeProps<Node<GraphNodeData>>) {
         onClick={() => data.onSelect(data.id)}
         className="rounded-2xl border text-left transition"
         style={{
-          minWidth: isRoot ? 190 : isBranch ? 160 : 190,
-          maxWidth: isRoot ? 220 : 210,
+          minWidth: isRoot ? 200 : isBranch ? 170 : 210,
+          maxWidth: isRoot ? 220 : isBranch ? 190 : 220,
           padding: isRoot ? '18px 20px' : isBranch ? '12px 18px' : '14px 16px',
           borderColor: data.active ? data.color : 'rgba(255,255,255,0.14)',
           background: data.active ? 'rgba(13, 23, 40, 0.98)' : 'rgba(13, 23, 40, 0.82)',
@@ -111,7 +112,7 @@ function SoftEdge({ id, sourceX, sourceY, targetX, targetY, style }: EdgeProps) 
     sourceY,
     targetX,
     targetY,
-    curvature: 0.32,
+    curvature: 0.24,
   });
 
   return <BaseEdge id={id} path={path} style={style} />;
@@ -119,6 +120,120 @@ function SoftEdge({ id, sourceX, sourceY, targetX, targetY, style }: EdgeProps) 
 
 const nodeTypes = { card: GraphCardNode };
 const edgeTypes = { soft: SoftEdge };
+
+function buildLayout(data: TreeData, activeId: string, onSelect: (id: string) => void) {
+  const graph = new dagre.graphlib.Graph();
+  graph.setDefaultEdgeLabel(() => ({}));
+  graph.setGraph({
+    rankdir: 'TB',
+    nodesep: 72,
+    ranksep: 88,
+    marginx: 80,
+    marginy: 60,
+  });
+
+  const branchIds = new Set(data.branches.map((branch) => branch.id));
+  const hierarchicalLinks = data.links.filter((link) => link.from === 'root' || !branchIds.has(link.to));
+  const contextualLinks = data.links.filter((link) => branchIds.has(link.from) && branchIds.has(link.to));
+
+  graph.setNode(root.id, { ...nodeDimensions.root });
+
+  data.branches.forEach((branch) => {
+    graph.setNode(branch.id, { ...nodeDimensions.branch });
+  });
+
+  data.nodes.forEach((node) => {
+    graph.setNode(node.id, { ...nodeDimensions.node });
+  });
+
+  hierarchicalLinks.forEach((link) => {
+    graph.setEdge(link.from, link.to);
+  });
+
+  dagre.layout(graph);
+
+  const nodes: Node<GraphNodeData>[] = [
+    {
+      id: root.id,
+      type: 'card',
+      position: graph.node(root.id),
+      draggable: false,
+      data: {
+        id: root.id,
+        label: root.label,
+        kind: 'root',
+        color: '#7abdfd',
+        active: activeId === root.id,
+        onSelect,
+      },
+    },
+    ...data.branches.map((branch) => ({
+      id: branch.id,
+      type: 'card',
+      position: graph.node(branch.id),
+      draggable: false,
+      data: {
+        id: branch.id,
+        label: branch.label,
+        kind: 'branch' as const,
+        color: colorMap[branch.color],
+        active: activeId === branch.id,
+        onSelect,
+      },
+    })),
+    ...data.nodes.map((node) => {
+      const branch = data.branches.find((item) => item.id === node.branch);
+      return {
+        id: node.id,
+        type: 'card',
+        position: graph.node(node.id),
+        draggable: false,
+        data: {
+          id: node.id,
+          label: node.label,
+          kind: 'node' as const,
+          color: colorMap[branch?.color ?? 'blue'],
+          tags: node.tags,
+          active: activeId === node.id,
+          onSelect,
+        },
+      };
+    }),
+  ];
+
+  const edges: Edge[] = [
+    ...hierarchicalLinks.map((link) => {
+      const isRootLink = link.from === 'root';
+      return {
+        id: `${link.from}-${link.to}`,
+        source: link.from,
+        target: link.to,
+        type: 'soft',
+        selectable: false,
+        style: {
+          stroke: isRootLink ? 'rgba(143, 192, 255, 0.95)' : 'rgba(115, 184, 255, 0.92)',
+          strokeWidth: isRootLink ? 2.4 : 1.8,
+          opacity: 0.96,
+        },
+      } satisfies Edge;
+    }),
+    ...contextualLinks.map((link) => ({
+      id: `${link.from}-${link.to}`,
+      source: link.from,
+      target: link.to,
+      type: 'soft',
+      selectable: false,
+      hidden: activeId === 'root' || !(link.from === activeId || link.to === activeId),
+      style: {
+        stroke: 'rgba(255,255,255,0.16)',
+        strokeWidth: 1.1,
+        opacity: 0.75,
+      },
+    } satisfies Edge)),
+  ];
+
+  return { nodes, edges };
+}
 
 export default function SkillTree({ data }: { data: TreeData }) {
   const [activeId, setActiveId] = useState<string>('root');
@@ -139,95 +254,7 @@ export default function SkillTree({ data }: { data: TreeData }) {
   const mobileBranch = data.branches.find((branch) => branch.id === mobileBranchId) ?? data.branches[0];
   const mobileNodes = data.nodes.filter((node) => node.branch === mobileBranch?.id);
 
-  const graphNodes = useMemo<Node<GraphNodeData>[]>(() => {
-    const percentToCanvas = (position: Point) => ({
-      x: (position.x / 100) * CANVAS_WIDTH,
-      y: (position.y / 100) * CANVAS_HEIGHT,
-    });
-
-    const branchNodes = data.branches.map((branch) => ({
-      id: branch.id,
-      type: 'card',
-      position: percentToCanvas(branch.position),
-      draggable: false,
-      data: {
-        id: branch.id,
-        label: branch.label,
-        kind: 'branch' as const,
-        color: colorMap[branch.color],
-        active: activeId === branch.id,
-        onSelect: setActiveId,
-      },
-    }));
-
-    const childNodes = data.nodes.map((node) => {
-      const branch = data.branches.find((item) => item.id === node.branch);
-      return {
-        id: node.id,
-        type: 'card',
-        position: percentToCanvas(node.position),
-        draggable: false,
-        data: {
-          id: node.id,
-          label: node.label,
-          kind: 'node' as const,
-          color: colorMap[branch?.color ?? 'blue'],
-          tags: node.tags,
-          active: activeId === node.id,
-          onSelect: setActiveId,
-        },
-      };
-    });
-
-    return [
-      {
-        id: root.id,
-        type: 'card',
-        position: percentToCanvas(root.position),
-        draggable: false,
-        data: {
-          id: root.id,
-          label: root.label,
-          kind: 'root' as const,
-          color: '#7abdfd',
-          active: activeId === 'root',
-          onSelect: setActiveId,
-        },
-      },
-      ...branchNodes,
-      ...childNodes,
-    ];
-  }, [activeId, data.branches, data.nodes]);
-
-  const graphEdges = useMemo<Edge[]>(() => {
-    const branchIds = new Set(data.branches.map((branch) => branch.id));
-
-    return data.links.map((link) => {
-      const isRootLink = link.from === 'root';
-      const isBranchToNode = branchIds.has(link.from) && !branchIds.has(link.to);
-      const isCrossBranch = branchIds.has(link.from) && branchIds.has(link.to);
-
-      const stroke = isRootLink
-        ? 'rgba(143, 192, 255, 0.95)'
-        : isBranchToNode
-          ? 'rgba(115, 184, 255, 0.9)'
-          : 'rgba(255,255,255,0.18)';
-
-      return {
-        id: `${link.from}-${link.to}`,
-        source: link.from,
-        target: link.to,
-        type: 'soft',
-        animated: false,
-        selectable: false,
-        style: {
-          stroke,
-          strokeWidth: isRootLink ? 2.4 : isBranchToNode ? 1.8 : 1.05,
-          opacity: isCrossBranch ? 0.55 : 0.95,
-        },
-      } satisfies Edge;
-    });
-  }, [data.branches, data.links]);
+  const { nodes, edges } = useMemo(() => buildLayout(data, activeId, setActiveId), [data, activeId]);
 
   return (
     <section id="skill-tree" className="shell pb-10 md:pb-14">
@@ -306,22 +333,22 @@ export default function SkillTree({ data }: { data: TreeData }) {
           <div className="flex items-center justify-between border-b border-white/8 px-6 py-4">
             <div>
               <div className="text-xs uppercase tracking-[0.24em] text-slate-400">Desktop view</div>
-              <div className="mt-1 text-sm text-slate-300">Drag, zoom, and click through the graph</div>
+              <div className="mt-1 text-sm text-slate-300">A structured graph with lightweight contextual links</div>
             </div>
-            <div className="text-xs text-slate-400">Use the controls to reset or zoom</div>
+            <div className="text-xs text-slate-400">Drag, zoom, and click nodes to inspect them</div>
           </div>
 
-          <div className="h-[780px]">
+          <div className="h-[820px]">
             <ReactFlow
-              nodes={graphNodes}
-              edges={graphEdges}
+              nodes={nodes}
+              edges={edges}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               nodeOrigin={[0.5, 0.5]}
               fitView
-              fitViewOptions={{ padding: 0.16, minZoom: 0.72 }}
+              fitViewOptions={{ padding: 0.18, minZoom: 0.72 }}
               minZoom={0.55}
-              maxZoom={1.4}
+              maxZoom={1.35}
               proOptions={{ hideAttribution: true }}
               nodesDraggable={false}
               elementsSelectable={false}
@@ -330,7 +357,7 @@ export default function SkillTree({ data }: { data: TreeData }) {
               className="bg-transparent"
               defaultEdgeOptions={{ type: 'soft' }}
             >
-              <Background color="rgba(255,255,255,0.08)" gap={22} size={1} />
+              <Background color="rgba(255,255,255,0.05)" gap={26} size={1} />
               <Controls showInteractive={false} position="bottom-right" />
             </ReactFlow>
           </div>
