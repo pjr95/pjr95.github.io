@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "period": "Present",
+      "title": "ML Engineering Manager",
+      "org": "Better Collective",
+      "summary": "Leading applied machine learning work with business impact."
+    },
+    {
+      "period": "Present",
+      "title": "Professor",
+      "org": "UNC",
+      "summary": "Teaching Statistics II and Intro to Data Science with Python."
+    },
+    {
+      "period": "Earlier",
+      "title": "Economist -> Data/ML Builder",
+      "org": "Career evolution",
+      "summary": "Grew from economics into machine learning, systems, and leadership."
+    }
+  ]
+}

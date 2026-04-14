@@ -1,0 +1,26 @@
+{
+  "name": "Pablo Romero",
+  "headline": "ML Engineering Manager, Professor, Economist",
+  "location": "Córdoba, Argentina",
+  "tagline": "Building models, teams, and understanding.",
+  "summary": "I work at the intersection of machine learning, leadership, teaching, and practical decision-making. I like turning complex systems into things people can actually use.",
+  "links": {
+    "github": "https://github.com/pjr95",
+    "site": "https://pjr95.github.io",
+    "email": "mailto:pablojoseromero.95@gmail.com"
+  },
+  "stats": [
+    {
+      "label": "Current focus",
+      "value": "ML leadership and applied modeling"
+    },
+    {
+      "label": "Teaching",
+      "value": "Statistics II and Intro to Data Science with Python"
+    },
+    {
+      "label": "Stack",
+      "value": "Python, SageMaker, Docker, GCP"
+    }
+  ]
+}

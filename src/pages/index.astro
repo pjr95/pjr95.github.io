@@ -1,0 +1,26 @@
+---
+import Hero from '../components/Hero.astro';
+import Timeline from '../components/Timeline.astro';
+import SkillTree from '../components/SkillTree';
+import profile from '../data/profile.json';
+import tree from '../data/tree.json';
+import timeline from '../data/timeline.json';
+import '../styles/global.css';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pablo Romero | Career Skill Tree</title>
+    <meta
+      name="description"
+      content="An interactive CV for Pablo Romero, blending a career skill tree with a graph-style knowledge map."
+    />
+  </head>
+  <body>
+    <Hero profile={profile} />
+    <SkillTree client:load data={tree} />
+    <Timeline items={timeline.items} />
+  </body>
+</html>

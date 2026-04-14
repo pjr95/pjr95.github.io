@@ -1,0 +1,41 @@
+{
+  "branches": [
+    { "id": "ml", "label": "Machine Learning", "color": "blue", "position": { "x": 28, "y": 26 } },
+    { "id": "leadership", "label": "Leadership", "color": "gold", "position": { "x": 50, "y": 16 } },
+    { "id": "teaching", "label": "Teaching", "color": "green", "position": { "x": 74, "y": 26 } },
+    { "id": "infra", "label": "Infrastructure", "color": "purple", "position": { "x": 32, "y": 68 } },
+    { "id": "communication", "label": "Communication", "color": "coral", "position": { "x": 70, "y": 68 } }
+  ],
+  "nodes": [
+    { "id": "clv", "branch": "ml", "label": "CLV Modeling", "position": { "x": 18, "y": 18 }, "summary": "Modeling player and partner value in business-facing ML systems.", "tags": ["Python", "Modeling", "Strategy"] },
+    { "id": "experimentation", "branch": "ml", "label": "Experimentation", "position": { "x": 22, "y": 36 }, "summary": "Designing measurement loops and learning from outcomes.", "tags": ["A/B Testing", "Measurement", "Decision Making"] },
+    { "id": "mentoring", "branch": "leadership", "label": "Mentoring", "position": { "x": 46, "y": 7 }, "summary": "Helping people grow into stronger technical contributors.", "tags": ["Coaching", "Team Growth"] },
+    { "id": "roadmap", "branch": "leadership", "label": "Roadmaps", "position": { "x": 58, "y": 10 }, "summary": "Connecting business priorities with ML execution.", "tags": ["Planning", "Stakeholders"] },
+    { "id": "unc", "branch": "teaching", "label": "UNC Teaching", "position": { "x": 82, "y": 18 }, "summary": "Teaching Statistics II and Intro to Data Science with Python.", "tags": ["Education", "Statistics", "Python"] },
+    { "id": "explanation", "branch": "teaching", "label": "Explanation Design", "position": { "x": 84, "y": 36 }, "summary": "Making difficult concepts feel graspable and motivating.", "tags": ["Communication", "Curriculum"] },
+    { "id": "sagemaker", "branch": "infra", "label": "SageMaker", "position": { "x": 20, "y": 78 }, "summary": "Applying cloud ML workflows to real delivery needs.", "tags": ["AWS", "Deployment"] },
+    { "id": "docker", "branch": "infra", "label": "Docker + GCP", "position": { "x": 42, "y": 80 }, "summary": "Using infrastructure as a practical multiplier for shipping work.", "tags": ["Docker", "GCP", "Tooling"] },
+    { "id": "languages", "branch": "communication", "label": "Languages", "position": { "x": 62, "y": 80 }, "summary": "Working across English, Spanish, Portuguese, and more.", "tags": ["Language", "Empathy"] },
+    { "id": "stakeholders", "branch": "communication", "label": "Stakeholders", "position": { "x": 82, "y": 78 }, "summary": "Translating technical work into useful, shared understanding.", "tags": ["Business", "Communication"] }
+  ],
+  "links": [
+    { "from": "root", "to": "ml" },
+    { "from": "root", "to": "leadership" },
+    { "from": "root", "to": "teaching" },
+    { "from": "root", "to": "infra" },
+    { "from": "root", "to": "communication" },
+    { "from": "ml", "to": "clv" },
+    { "from": "ml", "to": "experimentation" },
+    { "from": "leadership", "to": "mentoring" },
+    { "from": "leadership", "to": "roadmap" },
+    { "from": "teaching", "to": "unc" },
+    { "from": "teaching", "to": "explanation" },
+    { "from": "infra", "to": "sagemaker" },
+    { "from": "infra", "to": "docker" },
+    { "from": "communication", "to": "languages" },
+    { "from": "communication", "to": "stakeholders" },
+    { "from": "leadership", "to": "ml" },
+    { "from": "teaching", "to": "communication" },
+    { "from": "infra", "to": "ml" }
+  ]
+}
