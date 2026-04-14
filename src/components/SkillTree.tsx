@@ -44,7 +44,7 @@ const root = {
 };
 
 export default function SkillTree({ data }: { data: TreeData }) {
-  const [activeId, setActiveId] = useState<string>('ml');
+  const [activeId, setActiveId] = useState<string>('root');
 
   const entities = useMemo(() => {
     const branchEntries = data.branches.map((branch) => [branch.id, branch]);
@@ -188,7 +188,7 @@ export default function SkillTree({ data }: { data: TreeData }) {
           <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-4">
             <div className="text-xs uppercase tracking-[0.22em] text-slate-400">Implementation note</div>
             <p className="mt-3 text-sm leading-6 text-slate-300">
-              This component is driven by YAML data, so adding a new branch or project node is mostly a content edit, not a UI rewrite.
+              This component is driven by JSON data, so adding a new branch or project node is mostly a content edit, not a UI rewrite.
             </p>
           </div>
         </aside>

@@ -1,22 +1,40 @@
 {
   "items": [
     {
-      "period": "Present",
-      "title": "ML Engineering Manager",
+      "period": "2025 -> present",
+      "title": "ML Engineer & Data Science Manager",
       "org": "Better Collective",
-      "summary": "Leading applied machine learning work with business impact."
+      "summary": "Leading applied ML strategy, model delivery, governance, and cross-functional execution at meaningful business scale."
     },
     {
-      "period": "Present",
+      "period": "2024 -> present",
       "title": "Professor",
-      "org": "UNC",
-      "summary": "Teaching Statistics II and Intro to Data Science with Python."
+      "org": "UNC and UCC",
+      "summary": "Teaching Statistics II and Introduction to Data Science, while continuing assistant teaching in statistics and Python-related courses."
     },
     {
-      "period": "Earlier",
-      "title": "Economist -> Data/ML Builder",
-      "org": "Career evolution",
-      "summary": "Grew from economics into machine learning, systems, and leadership."
+      "period": "2025 -> present",
+      "title": "Master in Management",
+      "org": "Universidad de San Andrés",
+      "summary": "Expanding the management, organizational, and strategic side of technical leadership."
+    },
+    {
+      "period": "2023 -> 2025",
+      "title": "CEO",
+      "org": "Amauta",
+      "summary": "Built and operated a company across ML strategy, data architecture, client delivery, and business operations."
+    },
+    {
+      "period": "2023 -> 2025",
+      "title": "Data Migration & BI Lead",
+      "org": "Symplast",
+      "summary": "Led migration, analytics, evaluation, and automation initiatives in production SaaS data environments."
+    },
+    {
+      "period": "Earlier chapters",
+      "title": "Trader, Researcher, Builder",
+      "org": "Grupo del Plata, IERAL, UNC, freelance",
+      "summary": "A quantitative path through economics, research, markets, teaching, and applied data work."
     }
   ]
 }

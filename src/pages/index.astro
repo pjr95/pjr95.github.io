@@ -2,9 +2,11 @@
 import Hero from '../components/Hero.astro';
 import Timeline from '../components/Timeline.astro';
 import SkillTree from '../components/SkillTree';
+import Highlights from '../components/Highlights.astro';
 import profile from '../data/profile.json';
 import tree from '../data/tree.json';
 import timeline from '../data/timeline.json';
+import highlights from '../data/highlights.json';
 import '../styles/global.css';
 ---
 
@@ -21,6 +23,7 @@ import '../styles/global.css';
   <body>
     <Hero profile={profile} />
     <SkillTree client:load data={tree} />
+    <Highlights items={highlights.items} />
     <Timeline items={timeline.items} />
   </body>
 </html>

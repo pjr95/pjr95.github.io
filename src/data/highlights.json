@@ -1,0 +1,34 @@
+{
+  "items": [
+    {
+      "title": "Better Collective",
+      "eyebrow": "Scale and business impact",
+      "summary": "Leading end-to-end ML delivery across model families and thousands of cohort-level models tied to a large share of company revenue.",
+      "bullets": [
+        "10+ model families and 5,000+ cohort-level models",
+        "Business scope associated with roughly 85% of company revenue",
+        "Cross-functional work across product, marketing, and executive stakeholders"
+      ]
+    },
+    {
+      "title": "Amauta",
+      "eyebrow": "Entrepreneurial operating chapter",
+      "summary": "Built and ran a company across ML strategy, client delivery, operations, and business ownership, shaping how I think about execution under real constraints.",
+      "bullets": [
+        "Led consulting work across ML strategy, data architecture, and analytics",
+        "Built playbooks, onboarding, and delivery rhythms",
+        "Owned operational realities beyond the technical layer"
+      ]
+    },
+    {
+      "title": "Teaching",
+      "eyebrow": "Clarity as a multiplier",
+      "summary": "University teaching is a core part of how I work: making difficult ideas understandable, useful, and motivating for other people.",
+      "bullets": [
+        "Professor of Statistics II and Introduction to Data Science",
+        "Assistant teaching across statistics, Python, and AI-related subjects",
+        "Strong emphasis on explanation, confidence-building, and rigor"
+      ]
+    }
+  ]
+}
