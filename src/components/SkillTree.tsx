@@ -75,10 +75,10 @@ export default function SkillTree({ data }: { data: TreeData }) {
   return (
     <section id="skill-tree" className="shell pb-10 md:pb-14">
       <div className="mb-6">
-        <p className="text-sm uppercase tracking-[0.28em] text-sky-200/70">Interactive map</p>
-        <h2 className="mt-2 text-2xl font-semibold text-white md:text-3xl">A skill tree with graph-style connective tissue</h2>
+        <p className="text-sm uppercase tracking-[0.28em] text-sky-200/70">Skills and strengths</p>
+        <h2 className="mt-2 text-2xl font-semibold text-white md:text-3xl">An interactive view of the work</h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 md:text-base">
-          On larger screens, explore the full map. On mobile, browse the same structure branch by branch.
+          Explore the different parts of my background, from AI and systems to leadership, teaching, and strategy.
         </p>
       </div>
 
@@ -87,15 +87,15 @@ export default function SkillTree({ data }: { data: TreeData }) {
           <div className="panel glow rounded-[32px] p-5 md:hidden">
             <div className="mb-4 flex items-center justify-between gap-4">
               <div>
-                <div className="text-xs uppercase tracking-[0.24em] text-slate-400">Mobile view</div>
-                <div className="mt-2 text-lg font-semibold text-white">Browse by branch</div>
+                <div className="text-xs uppercase tracking-[0.24em] text-slate-400">Explore</div>
+                <div className="mt-2 text-lg font-semibold text-white">Browse by area</div>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveId('root')}
                 className="rounded-full border border-sky-300/30 px-3 py-1.5 text-xs font-medium text-sky-100"
               >
-                About Pablo
+                Overview
               </button>
             </div>
 
@@ -235,7 +235,7 @@ export default function SkillTree({ data }: { data: TreeData }) {
         </div>
 
         <aside className="panel rounded-[32px] p-6 md:p-7">
-          <div className="text-xs uppercase tracking-[0.24em] text-slate-400">Selected node</div>
+          <div className="text-xs uppercase tracking-[0.24em] text-slate-400">Focus</div>
           <h3 className="mt-3 text-2xl font-semibold text-white">{activeEntity.label}</h3>
           <div className="mt-3 h-1.5 w-20 rounded-full" style={{ background: activeBranchColor }} />
           <p className="mt-5 text-sm leading-7 text-slate-300">
