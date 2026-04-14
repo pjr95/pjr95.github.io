@@ -79,7 +79,6 @@ function GraphCardNode({ data }: NodeProps<Node<GraphNodeData>>) {
   return (
     <>
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
-      <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
       <button
         type="button"
         onClick={() => data.onSelect(data.id)}
@@ -102,7 +101,6 @@ function GraphCardNode({ data }: NodeProps<Node<GraphNodeData>>) {
         )}
       </button>
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
     </>
   );
 }
