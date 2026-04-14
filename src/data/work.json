@@ -1,0 +1,34 @@
+{
+  "items": [
+    {
+      "title": "AI & ML leadership",
+      "summary": "I build teams, shape direction, and turn AI and machine learning into something an organization can actually rely on.",
+      "detail": "At Better Collective, that has included building a team from scratch, leading international collaboration, and helping shape forward-looking AI work with real business impact."
+    },
+    {
+      "title": "Architecture and MLOps",
+      "summary": "I care about the systems around the models, not just the models themselves.",
+      "detail": "That means reproducibility, deployment workflows, ETL and platform thinking, and cloud architecture that makes machine learning usable in practice."
+    },
+    {
+      "title": "Evaluation and delivery rigor",
+      "summary": "I care a lot about whether systems are trustworthy, testable, and safe to operate.",
+      "detail": "From model governance and revalidation to evaluation harnesses for AI applications, I like building with rigor instead of hype."
+    },
+    {
+      "title": "Business-facing analytics",
+      "summary": "I like technical work that helps people make better decisions.",
+      "detail": "A big part of my background is connecting models, analytics, and strategic questions such as retention, monetization, and unit economics."
+    },
+    {
+      "title": "Teaching and technical communication",
+      "summary": "Teaching is one of the clearest expressions of how I work.",
+      "detail": "I try to connect theory with practice, help people build confidence, and give them a new lens through which to understand reality."
+    },
+    {
+      "title": "Strategy, systems, and unit economics",
+      "summary": "My economics background still shapes how I think.",
+      "detail": "I naturally think in models, incentives, tradeoffs, and margins, which helps me connect technical systems to business strategy in a grounded way."
+    }
+  ]
+}
