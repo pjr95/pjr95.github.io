@@ -1,19 +1,31 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
+import {
+  Background,
+  Controls,
+  Handle,
+  MarkerType,
+  Position,
+  ReactFlow,
+  type Edge,
+  type Node,
+  type NodeProps,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
-type Position = { x: number; y: number };
+type Point = { x: number; y: number };
 
 type Branch = {
   id: string;
   label: string;
   color: string;
-  position: Position;
+  position: Point;
 };
 
-type Node = {
+type TreeNode = {
   id: string;
   branch: string;
   label: string;
-  position: Position;
+  position: Point;
   summary: string;
   tags: string[];
 };
@@ -25,8 +37,18 @@ type Link = {
 
 type TreeData = {
   branches: Branch[];
-  nodes: Node[];
+  nodes: TreeNode[];
   links: Link[];
+};
+
+type GraphNodeData = {
+  label: string;
+  kind: 'root' | 'branch' | 'node';
+  color: string;
+  tags?: string[];
+  active?: boolean;
+  onSelect: (id: string) => void;
+  id: string;
 };
 
 const colorMap: Record<string, string> = {
@@ -45,19 +67,52 @@ const root = {
     'AI and ML leader with a systems mindset, an educator’s instinct for clarity, and an economics-rooted way of thinking about decisions, tradeoffs, and impact.',
 };
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const CANVAS_WIDTH = 1200;
+const CANVAS_HEIGHT = 760;
+
+function GraphCardNode({ data }: NodeProps<Node<GraphNodeData>>) {
+  const isRoot = data.kind === 'root';
+  const isBranch = data.kind === 'branch';
+
+  return (
+    <>
+      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
+      <button
+        type="button"
+        onClick={() => data.onSelect(data.id)}
+        className="rounded-2xl border text-left transition"
+        style={{
+          minWidth: isRoot ? 190 : isBranch ? 160 : 190,
+          maxWidth: isRoot ? 220 : 210,
+          padding: isRoot ? '18px 20px' : isBranch ? '12px 18px' : '14px 16px',
+          borderColor: data.active ? data.color : 'rgba(255,255,255,0.14)',
+          background: data.active ? 'rgba(13, 23, 40, 0.98)' : 'rgba(13, 23, 40, 0.82)',
+          boxShadow: data.active ? `0 0 26px ${data.color}2e` : '0 0 0 1px rgba(255,255,255,0.03)',
+          color: '#edf4ff',
+          borderRadius: isRoot ? 28 : isBranch ? 999 : 20,
+        }}
+      >
+        {isRoot && <div className="text-[11px] uppercase tracking-[0.3em] text-sky-200/70">Root</div>}
+        <div className={`font-semibold ${isRoot ? 'mt-1 text-xl' : isBranch ? 'text-sm' : 'text-base'}`}>{data.label}</div>
+        {!isBranch && data.tags && data.tags.length > 0 && (
+          <div className="mt-2 text-xs text-slate-400">{data.tags.slice(0, 2).join(' • ')}</div>
+        )}
+      </button>
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+    </>
+  );
+}
+
+const nodeTypes = { card: GraphCardNode };
 
 export default function SkillTree({ data }: { data: TreeData }) {
   const [activeId, setActiveId] = useState<string>('root');
   const [mobileBranchId, setMobileBranchId] = useState<string>(data.branches[0]?.id ?? '');
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
-  const dragRef = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
 
   const entities = useMemo(() => {
     const branchEntries = data.branches.map((branch) => [branch.id, branch] as const);
     const nodeEntries = data.nodes.map((node) => [node.id, node] as const);
-    return new Map<string, Branch | Node | typeof root>([['root', root], ...branchEntries, ...nodeEntries]);
+    return new Map<string, Branch | TreeNode | typeof root>([['root', root], ...branchEntries, ...nodeEntries]);
   }, [data]);
 
   const activeEntity = entities.get(activeId) ?? root;
@@ -66,45 +121,104 @@ export default function SkillTree({ data }: { data: TreeData }) {
       ? colorMap[data.branches.find((branch) => branch.id === activeEntity.branch)?.color ?? 'blue']
       : colorMap[(activeEntity as Branch).color ?? 'blue'] ?? '#5ab2ff';
 
-  const connectedIds = new Set<string>(
-    data.links
-      .filter((link) => link.from === activeId || link.to === activeId)
-      .flatMap((link) => [link.from, link.to]),
-  );
-  connectedIds.add(activeId);
-
-  const getPosition = (id: string) => entities.get(id)?.position ?? root.position;
   const mobileBranch = data.branches.find((branch) => branch.id === mobileBranchId) ?? data.branches[0];
   const mobileNodes = data.nodes.filter((node) => node.branch === mobileBranch?.id);
 
-  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement;
-    if (target.closest('button')) return;
+  const graphNodes = useMemo<Node<GraphNodeData>[]>(() => {
+    const percentToCanvas = (position: Point) => ({
+      x: (position.x / 100) * CANVAS_WIDTH,
+      y: (position.y / 100) * CANVAS_HEIGHT,
+    });
 
-    dragRef.current = {
-      x: event.clientX,
-      y: event.clientY,
-      startX: offset.x,
-      startY: offset.y,
-    };
-    setDragging(true);
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
+    const branchNodes = data.branches.map((branch) => ({
+      id: branch.id,
+      type: 'card',
+      position: percentToCanvas(branch.position),
+      draggable: false,
+      data: {
+        id: branch.id,
+        label: branch.label,
+        kind: 'branch' as const,
+        color: colorMap[branch.color],
+        active: activeId === branch.id,
+        onSelect: setActiveId,
+      },
+    }));
 
-  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current) return;
-    const nextX = clamp(dragRef.current.startX + (event.clientX - dragRef.current.x), -90, 90);
-    const nextY = clamp(dragRef.current.startY + (event.clientY - dragRef.current.y), -70, 70);
-    setOffset({ x: nextX, y: nextY });
-  };
+    const childNodes = data.nodes.map((node) => {
+      const branch = data.branches.find((item) => item.id === node.branch);
+      return {
+        id: node.id,
+        type: 'card',
+        position: percentToCanvas(node.position),
+        draggable: false,
+        data: {
+          id: node.id,
+          label: node.label,
+          kind: 'node' as const,
+          color: colorMap[branch?.color ?? 'blue'],
+          tags: node.tags,
+          active: activeId === node.id,
+          onSelect: setActiveId,
+        },
+      };
+    });
 
-  const endDrag = (event?: React.PointerEvent<HTMLDivElement>) => {
-    if (event && event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    dragRef.current = null;
-    setDragging(false);
-  };
+    return [
+      {
+        id: root.id,
+        type: 'card',
+        position: percentToCanvas(root.position),
+        draggable: false,
+        data: {
+          id: root.id,
+          label: root.label,
+          kind: 'root' as const,
+          color: '#7abdfd',
+          active: activeId === 'root',
+          onSelect: setActiveId,
+        },
+      },
+      ...branchNodes,
+      ...childNodes,
+    ];
+  }, [activeId, data.branches, data.nodes]);
+
+  const graphEdges = useMemo<Edge[]>(() => {
+    const branchIds = new Set(data.branches.map((branch) => branch.id));
+
+    return data.links.map((link) => {
+      const isRootLink = link.from === 'root';
+      const isBranchToNode = branchIds.has(link.from) && !branchIds.has(link.to);
+      const isCrossBranch = branchIds.has(link.from) && branchIds.has(link.to);
+
+      const stroke = isRootLink
+        ? 'rgba(143, 192, 255, 0.95)'
+        : isBranchToNode
+          ? 'rgba(115, 184, 255, 0.9)'
+          : 'rgba(255,255,255,0.18)';
+
+      return {
+        id: `${link.from}-${link.to}`,
+        source: link.from,
+        target: link.to,
+        type: 'smoothstep',
+        animated: false,
+        selectable: false,
+        style: {
+          stroke,
+          strokeWidth: isRootLink ? 2.2 : isBranchToNode ? 1.7 : 1.1,
+          opacity: isCrossBranch ? 0.8 : 1,
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: stroke,
+          width: isCrossBranch ? 14 : 18,
+          height: isCrossBranch ? 14 : 18,
+        },
+      } satisfies Edge;
+    });
+  }, [data.branches, data.links]);
 
   return (
     <section id="skill-tree" className="shell pb-10 md:pb-14">
@@ -179,118 +293,35 @@ export default function SkillTree({ data }: { data: TreeData }) {
           )}
         </div>
 
-        <div className="panel glow relative hidden overflow-hidden rounded-[32px] md:block">
+        <div className="panel glow hidden overflow-hidden rounded-[32px] md:block">
           <div className="flex items-center justify-between border-b border-white/8 px-6 py-4">
             <div>
               <div className="text-xs uppercase tracking-[0.24em] text-slate-400">Desktop view</div>
-              <div className="mt-1 text-sm text-slate-300">Drag to explore the map</div>
+              <div className="mt-1 text-sm text-slate-300">Drag, zoom, and click through the graph</div>
             </div>
-            <button
-              type="button"
-              onClick={() => setOffset({ x: 0, y: 0 })}
-              className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-sky-300/40 hover:bg-white/5"
-            >
-              Reset view
-            </button>
+            <div className="text-xs text-slate-400">Use the controls to reset or zoom</div>
           </div>
 
-          <div
-            className="relative h-[760px] overflow-hidden"
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={endDrag}
-            onPointerLeave={endDrag}
-            style={{ cursor: dragging ? 'grabbing' : 'grab' }}
-          >
-            <div className="absolute inset-0 opacity-40" aria-hidden="true">
-              <div className="absolute left-[12%] top-[14%] h-40 w-40 rounded-full bg-sky-500/10 blur-3xl" />
-              <div className="absolute right-[14%] top-[20%] h-36 w-36 rounded-full bg-fuchsia-400/10 blur-3xl" />
-              <div className="absolute bottom-[12%] left-[30%] h-44 w-44 rounded-full bg-emerald-400/10 blur-3xl" />
-            </div>
-
-            <div
-              className="absolute inset-0 select-none"
-              style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(1.03)`, transformOrigin: 'center center' }}
+          <div className="h-[780px]">
+            <ReactFlow
+              nodes={graphNodes}
+              edges={graphEdges}
+              nodeTypes={nodeTypes}
+              fitView
+              fitViewOptions={{ padding: 0.16, minZoom: 0.72 }}
+              minZoom={0.55}
+              maxZoom={1.4}
+              proOptions={{ hideAttribution: true }}
+              nodesDraggable={false}
+              elementsSelectable={false}
+              zoomOnDoubleClick={false}
+              panOnDrag
+              className="bg-transparent"
+              defaultEdgeOptions={{ type: 'smoothstep' }}
             >
-              <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
-                {data.links.map((link) => {
-                  const from = getPosition(link.from);
-                  const to = getPosition(link.to);
-                  const isActive = connectedIds.has(link.from) && connectedIds.has(link.to);
-                  return (
-                    <line
-                      key={`${link.from}-${link.to}`}
-                      x1={from.x}
-                      y1={from.y}
-                      x2={to.x}
-                      y2={to.y}
-                      stroke={isActive ? 'rgba(122, 189, 255, 0.95)' : 'rgba(255, 255, 255, 0.12)'}
-                      strokeWidth={isActive ? 0.4 : 0.2}
-                      strokeLinecap="round"
-                    />
-                  );
-                })}
-              </svg>
-
-              <button
-                type="button"
-                onClick={() => setActiveId('root')}
-                className="absolute left-[50%] top-[48%] z-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-sky-300/40 bg-slate-950/90 px-6 py-5 text-center shadow-[0_0_30px_rgba(90,178,255,0.22)] transition hover:border-sky-200 hover:bg-slate-900"
-              >
-                <div className="text-xs uppercase tracking-[0.25em] text-sky-200/80">Root</div>
-                <div className="mt-1 text-base font-semibold text-white">Pablo Romero</div>
-              </button>
-
-              {data.branches.map((branch) => {
-                const active = activeId === branch.id;
-                const connected = connectedIds.has(branch.id);
-                return (
-                  <button
-                    key={branch.id}
-                    type="button"
-                    onClick={() => setActiveId(branch.id)}
-                    className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border px-5 py-3 text-sm font-medium transition"
-                    style={{
-                      left: `${branch.position.x}%`,
-                      top: `${branch.position.y}%`,
-                      borderColor: active || connected ? colorMap[branch.color] : 'rgba(255,255,255,0.16)',
-                      background: active || connected ? 'rgba(8, 15, 28, 0.95)' : 'rgba(8, 15, 28, 0.72)',
-                      color: '#eff6ff',
-                      boxShadow: active ? `0 0 24px ${colorMap[branch.color]}33` : 'none',
-                    }}
-                  >
-                    {branch.label}
-                  </button>
-                );
-              })}
-
-              {data.nodes.map((node) => {
-                const active = activeId === node.id;
-                const connected = connectedIds.has(node.id);
-                const branch = data.branches.find((item) => item.id === node.branch);
-                const color = colorMap[branch?.color ?? 'blue'];
-                return (
-                  <button
-                    key={node.id}
-                    type="button"
-                    onClick={() => setActiveId(node.id)}
-                    className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-2xl border px-4 py-3 text-left text-sm transition"
-                    style={{
-                      left: `${node.position.x}%`,
-                      top: `${node.position.y}%`,
-                      width: '190px',
-                      borderColor: active || connected ? color : 'rgba(255,255,255,0.12)',
-                      background: active ? 'rgba(14, 25, 44, 0.96)' : 'rgba(14, 25, 44, 0.76)',
-                      boxShadow: active ? `0 0 24px ${color}2e` : 'none',
-                      color: '#e5eefc',
-                    }}
-                  >
-                    <div className="font-medium">{node.label}</div>
-                    <div className="mt-1 text-xs text-slate-400">{node.tags.slice(0, 2).join(' • ')}</div>
-                  </button>
-                );
-              })}
-            </div>
+              <Background color="rgba(255,255,255,0.08)" gap={22} size={1} />
+              <Controls showInteractive={false} position="bottom-right" />
+            </ReactFlow>
           </div>
         </div>
 
