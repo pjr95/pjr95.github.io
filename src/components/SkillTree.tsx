@@ -152,11 +152,26 @@ function buildLayout(data: TreeData, activeId: string, onSelect: (id: string) =>
 
   dagre.layout(graph);
 
+  const positions = new Map<string, { x: number; y: number }>();
+  positions.set(root.id, { ...graph.node(root.id) });
+  data.branches.forEach((branch) => positions.set(branch.id, { ...graph.node(branch.id) }));
+  data.nodes.forEach((node) => positions.set(node.id, { ...graph.node(node.id) }));
+
+  const rootPos = positions.get(root.id)!;
+  positions.set(root.id, { ...rootPos, y: rootPos.y + 42 });
+  positions.set('ai-ml', { x: rootPos.x - 185, y: rootPos.y - 88 });
+  positions.set('leadership', { x: rootPos.x + 45, y: rootPos.y - 88 });
+  positions.set('better-collective', { x: rootPos.x - 320, y: rootPos.y + 2 });
+  positions.set('agents', { x: rootPos.x - 155, y: rootPos.y + 10 });
+  positions.set('governance', { x: rootPos.x - 295, y: rootPos.y + 118 });
+  positions.set('team-leadership', { x: rootPos.x - 5, y: rootPos.y + 4 });
+  positions.set('amauta', { x: rootPos.x + 150, y: rootPos.y + 8 });
+
   const nodes: Node<GraphNodeData>[] = [
     {
       id: root.id,
       type: 'card',
-      position: graph.node(root.id),
+      position: positions.get(root.id)!,
       draggable: false,
       data: {
         id: root.id,
@@ -170,7 +185,7 @@ function buildLayout(data: TreeData, activeId: string, onSelect: (id: string) =>
     ...data.branches.map((branch) => ({
       id: branch.id,
       type: 'card',
-      position: graph.node(branch.id),
+      position: positions.get(branch.id)!,
       draggable: false,
       data: {
         id: branch.id,
@@ -186,7 +201,7 @@ function buildLayout(data: TreeData, activeId: string, onSelect: (id: string) =>
       return {
         id: node.id,
         type: 'card',
-        position: graph.node(node.id),
+        position: positions.get(node.id)!,
         draggable: false,
         data: {
           id: node.id,
