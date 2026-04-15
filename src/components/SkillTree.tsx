@@ -1,19 +1,4 @@
 import { useMemo, useState } from 'react';
-import dagre from 'dagre';
-import {
-  Background,
-  BaseEdge,
-  Controls,
-  Handle,
-  Position,
-  ReactFlow,
-  getBezierPath,
-  type Edge,
-  type EdgeProps,
-  type Node,
-  type NodeProps,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
 
 type Branch = {
   id: string;
@@ -42,14 +27,16 @@ type TreeData = {
   links: Link[];
 };
 
-type GraphNodeData = {
+type LayoutNode = {
+  id: string;
   label: string;
   kind: 'root' | 'branch' | 'node';
   color: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
   tags?: string[];
-  active?: boolean;
-  onSelect: (id: string) => void;
-  id: string;
 };
 
 const colorMap: Record<string, string> = {
@@ -67,187 +54,154 @@ const root = {
     'AI and ML leader with a systems mindset, an educator’s instinct for clarity, and an economics-rooted way of thinking about decisions, tradeoffs, and impact.',
 };
 
-const nodeDimensions = {
-  root: { width: 220, height: 94 },
-  branch: { width: 180, height: 58 },
-  node: { width: 220, height: 96 },
+const branchSummaries: Record<string, string> = {
+  'ai-ml': 'Applied machine learning leadership across model portfolios, agent workflows, evaluation systems, and production-grade governance.',
+  leadership: 'Building teams, mentoring across disciplines, and carrying technical work into organizational execution and long-term capability.',
+  teaching: 'Teaching is part of the operating system here, turning complexity into clarity and helping people grow real confidence.',
+  architecture: 'Hands-on systems thinking across cloud platforms, MLOps, automation, and the infrastructure that makes ML useful in practice.',
+  strategy: 'An economics-rooted way of thinking about incentives, tradeoffs, and organizational direction, now deepened through management study.',
 };
 
-function GraphCardNode({ data }: NodeProps<Node<GraphNodeData>>) {
-  const isRoot = data.kind === 'root';
-  const isBranch = data.kind === 'branch';
+const FRAME = {
+  width: 1160,
+  height: 820,
+};
+
+const ROOT_LAYOUT = {
+  x: 580,
+  y: 332,
+  width: 240,
+  height: 98,
+};
+
+const BRANCH_LAYOUTS: Record<string, { x: number; y: number; width: number; height: number }> = {
+  'ai-ml': { x: 330, y: 148, width: 190, height: 58 },
+  leadership: { x: 640, y: 136, width: 190, height: 58 },
+  teaching: { x: 910, y: 254, width: 190, height: 58 },
+  architecture: { x: 296, y: 552, width: 220, height: 58 },
+  strategy: { x: 858, y: 556, width: 210, height: 58 },
+};
+
+const NODE_LAYOUTS: Record<string, { x: number; y: number; width: number; height: number }> = {
+  'better-collective': { x: 184, y: 286, width: 220, height: 96 },
+  governance: { x: 298, y: 430, width: 220, height: 96 },
+  agents: { x: 468, y: 252, width: 220, height: 96 },
+  'team-leadership': { x: 604, y: 254, width: 220, height: 96 },
+  amauta: { x: 772, y: 280, width: 220, height: 96 },
+  unc: { x: 984, y: 404, width: 220, height: 96 },
+  explanation: { x: 900, y: 490, width: 220, height: 96 },
+  cloud: { x: 226, y: 670, width: 220, height: 96 },
+  symplast: { x: 408, y: 676, width: 220, height: 96 },
+  economist: { x: 760, y: 680, width: 220, height: 96 },
+  'management-master': { x: 944, y: 674, width: 220, height: 96 },
+};
+
+function edgePath(source: LayoutNode, target: LayoutNode, mode: 'hierarchy' | 'context') {
+  const startX = source.x;
+  const endX = target.x;
+  const startY = source.y + source.height / 2;
+  const endY = target.y - target.height / 2;
+  const verticalGap = Math.max(60, Math.abs(endY - startY) * (mode === 'context' ? 0.28 : 0.42));
+
+  return `M ${startX} ${startY} C ${startX} ${startY + verticalGap}, ${endX} ${endY - verticalGap}, ${endX} ${endY}`;
+}
+
+function DesktopGraphCard({
+  node,
+  active,
+  onSelect,
+}: {
+  node: LayoutNode;
+  active: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const isRoot = node.kind === 'root';
+  const isBranch = node.kind === 'branch';
 
   return (
-    <>
-      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
-      <button
-        type="button"
-        onClick={() => data.onSelect(data.id)}
-        className="rounded-2xl border text-left transition"
-        style={{
-          minWidth: isRoot ? 200 : isBranch ? 170 : 210,
-          maxWidth: isRoot ? 220 : isBranch ? 190 : 220,
-          padding: isRoot ? '18px 20px' : isBranch ? '12px 18px' : '14px 16px',
-          borderColor: data.active ? data.color : 'rgba(255,255,255,0.14)',
-          background: data.active ? 'rgba(13, 23, 40, 0.98)' : 'rgba(13, 23, 40, 0.82)',
-          boxShadow: data.active ? `0 0 26px ${data.color}2e` : '0 0 0 1px rgba(255,255,255,0.03)',
-          color: '#edf4ff',
-          borderRadius: isRoot ? 28 : isBranch ? 999 : 20,
-        }}
-      >
-        {isRoot && <div className="text-[11px] uppercase tracking-[0.3em] text-sky-200/70">Root</div>}
-        <div className={`font-semibold ${isRoot ? 'mt-1 text-xl' : isBranch ? 'text-sm' : 'text-base'}`}>{data.label}</div>
-        {!isBranch && data.tags && data.tags.length > 0 && (
-          <div className="mt-2 text-xs text-slate-400">{data.tags.slice(0, 2).join(' • ')}</div>
-        )}
-      </button>
-      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
-    </>
+    <button
+      type="button"
+      onClick={() => onSelect(node.id)}
+      className="absolute border text-left transition duration-300"
+      style={{
+        left: node.x,
+        top: node.y,
+        width: node.width,
+        minHeight: node.height,
+        transform: 'translate(-50%, -50%)',
+        borderColor: active ? node.color : 'rgba(255,255,255,0.12)',
+        background: active ? 'rgba(11, 21, 37, 0.98)' : 'rgba(10, 18, 32, 0.82)',
+        boxShadow: active
+          ? `0 18px 60px ${node.color}25, inset 0 0 0 1px ${node.color}22`
+          : '0 12px 40px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(255,255,255,0.03)',
+        color: '#edf4ff',
+        borderRadius: isRoot ? 30 : isBranch ? 999 : 24,
+        padding: isRoot ? '20px 22px' : isBranch ? '12px 18px' : '14px 16px',
+        zIndex: active ? 5 : isRoot ? 4 : isBranch ? 3 : 2,
+      }}
+    >
+      {isRoot && <div className="text-[11px] uppercase tracking-[0.3em] text-sky-200/70">Root</div>}
+      <div className={`font-semibold ${isRoot ? 'mt-1 text-xl' : isBranch ? 'text-sm' : 'text-base'}`}>{node.label}</div>
+      {!isBranch && node.tags && node.tags.length > 0 && (
+        <div className="mt-2 text-xs text-slate-400">{node.tags.slice(0, 2).join(' • ')}</div>
+      )}
+    </button>
   );
 }
 
-function SoftEdge({ id, sourceX, sourceY, targetX, targetY, style }: EdgeProps) {
-  const [path] = getBezierPath({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    curvature: 0.24,
-  });
+function buildDesktopLayout(data: TreeData) {
+  const branchById = new Map(data.branches.map((branch) => [branch.id, branch] as const));
 
-  return <BaseEdge id={id} path={path} style={style} />;
-}
-
-const nodeTypes = { card: GraphCardNode };
-const edgeTypes = { soft: SoftEdge };
-
-function buildLayout(data: TreeData, activeId: string, onSelect: (id: string) => void) {
-  const graph = new dagre.graphlib.Graph();
-  graph.setDefaultEdgeLabel(() => ({}));
-  graph.setGraph({
-    rankdir: 'TB',
-    nodesep: 72,
-    ranksep: 88,
-    marginx: 80,
-    marginy: 60,
-  });
-
-  const branchIds = new Set(data.branches.map((branch) => branch.id));
-  const hierarchicalLinks = data.links.filter((link) => link.from === 'root' || !branchIds.has(link.to));
-  const contextualLinks = data.links.filter((link) => branchIds.has(link.from) && branchIds.has(link.to));
-
-  graph.setNode(root.id, { ...nodeDimensions.root });
-
-  data.branches.forEach((branch) => {
-    graph.setNode(branch.id, { ...nodeDimensions.branch });
-  });
-
-  data.nodes.forEach((node) => {
-    graph.setNode(node.id, { ...nodeDimensions.node });
-  });
-
-  hierarchicalLinks.forEach((link) => {
-    graph.setEdge(link.from, link.to);
-  });
-
-  dagre.layout(graph);
-
-  const positions = new Map<string, { x: number; y: number }>();
-  positions.set(root.id, { ...graph.node(root.id) });
-  data.branches.forEach((branch) => positions.set(branch.id, { ...graph.node(branch.id) }));
-  data.nodes.forEach((node) => positions.set(node.id, { ...graph.node(node.id) }));
-
-  const rootPos = positions.get(root.id)!;
-  positions.set(root.id, { ...rootPos, y: rootPos.y + 42 });
-  positions.set('ai-ml', { x: rootPos.x - 185, y: rootPos.y - 88 });
-  positions.set('leadership', { x: rootPos.x + 45, y: rootPos.y - 88 });
-  positions.set('better-collective', { x: rootPos.x - 320, y: rootPos.y + 2 });
-  positions.set('agents', { x: rootPos.x - 155, y: rootPos.y + 10 });
-  positions.set('governance', { x: rootPos.x - 295, y: rootPos.y + 118 });
-  positions.set('team-leadership', { x: rootPos.x - 5, y: rootPos.y + 4 });
-  positions.set('amauta', { x: rootPos.x + 150, y: rootPos.y + 8 });
-
-  const nodes: Node<GraphNodeData>[] = [
+  const nodes: LayoutNode[] = [
     {
       id: root.id,
-      type: 'card',
-      position: positions.get(root.id)!,
-      draggable: false,
-      data: {
-        id: root.id,
-        label: root.label,
-        kind: 'root',
-        color: '#7abdfd',
-        active: activeId === root.id,
-        onSelect,
-      },
+      label: root.label,
+      kind: 'root',
+      color: '#7abdfd',
+      ...ROOT_LAYOUT,
     },
     ...data.branches.map((branch) => ({
       id: branch.id,
-      type: 'card',
-      position: positions.get(branch.id)!,
-      draggable: false,
-      data: {
-        id: branch.id,
-        label: branch.label,
-        kind: 'branch' as const,
-        color: colorMap[branch.color],
-        active: activeId === branch.id,
-        onSelect,
-      },
+      label: branch.label,
+      kind: 'branch' as const,
+      color: colorMap[branch.color],
+      ...(BRANCH_LAYOUTS[branch.id] ?? {
+        x: branch.position.x * 11,
+        y: branch.position.y * 8,
+        width: 190,
+        height: 58,
+      }),
     })),
     ...data.nodes.map((node) => {
-      const branch = data.branches.find((item) => item.id === node.branch);
+      const branch = branchById.get(node.branch);
       return {
         id: node.id,
-        type: 'card',
-        position: positions.get(node.id)!,
-        draggable: false,
-        data: {
-          id: node.id,
-          label: node.label,
-          kind: 'node' as const,
-          color: colorMap[branch?.color ?? 'blue'],
-          tags: node.tags,
-          active: activeId === node.id,
-          onSelect,
-        },
+        label: node.label,
+        kind: 'node' as const,
+        color: colorMap[branch?.color ?? 'blue'],
+        tags: node.tags,
+        ...(NODE_LAYOUTS[node.id] ?? {
+          x: node.position.x * 11,
+          y: node.position.y * 8,
+          width: 220,
+          height: 96,
+        }),
       };
     }),
   ];
 
-  const edges: Edge[] = [
-    ...hierarchicalLinks.map((link) => {
-      const isRootLink = link.from === 'root';
-      return {
-        id: `${link.from}-${link.to}`,
-        source: link.from,
-        target: link.to,
-        type: 'soft',
-        selectable: false,
-        style: {
-          stroke: isRootLink ? 'rgba(143, 192, 255, 0.95)' : 'rgba(115, 184, 255, 0.92)',
-          strokeWidth: isRootLink ? 2.4 : 1.8,
-          opacity: 0.96,
-        },
-      } satisfies Edge;
-    }),
-    ...contextualLinks.map((link) => ({
-      id: `${link.from}-${link.to}`,
-      source: link.from,
-      target: link.to,
-      type: 'soft',
-      selectable: false,
-      hidden: activeId === 'root' || !(link.from === activeId || link.to === activeId),
-      style: {
-        stroke: 'rgba(255,255,255,0.16)',
-        strokeWidth: 1.1,
-        opacity: 0.75,
-      },
-    } satisfies Edge)),
-  ];
+  const byId = new Map(nodes.map((node) => [node.id, node] as const));
+  const branchIds = new Set(data.branches.map((branch) => branch.id));
 
-  return { nodes, edges };
+  const hierarchyLinks = data.links.filter((link) => link.from === 'root' || !branchIds.has(link.to));
+  const contextLinks = data.links.filter((link) => branchIds.has(link.from) && branchIds.has(link.to));
+
+  return {
+    nodes,
+    byId,
+    hierarchyLinks,
+    contextLinks,
+  };
 }
 
 export default function SkillTree({ data }: { data: TreeData }) {
@@ -260,16 +214,31 @@ export default function SkillTree({ data }: { data: TreeData }) {
     return new Map<string, Branch | TreeNode | typeof root>([['root', root], ...branchEntries, ...nodeEntries]);
   }, [data]);
 
+  const desktopGraph = useMemo(() => buildDesktopLayout(data), [data]);
+
   const activeEntity = entities.get(activeId) ?? root;
   const activeBranchColor =
     'branch' in activeEntity
       ? colorMap[data.branches.find((branch) => branch.id === activeEntity.branch)?.color ?? 'blue']
       : colorMap[(activeEntity as Branch).color ?? 'blue'] ?? '#5ab2ff';
+  const activeSummary =
+    activeId === 'root'
+      ? root.summary
+      : data.branches.some((branch) => branch.id === activeId)
+        ? branchSummaries[activeId] ?? root.summary
+        : 'summary' in activeEntity
+          ? activeEntity.summary
+          : root.summary;
 
   const mobileBranch = data.branches.find((branch) => branch.id === mobileBranchId) ?? data.branches[0];
   const mobileNodes = data.nodes.filter((node) => node.branch === mobileBranch?.id);
 
-  const { nodes, edges } = useMemo(() => buildLayout(data, activeId, setActiveId), [data, activeId]);
+  const activeBranchId =
+    activeId === 'root'
+      ? null
+      : data.branches.some((branch) => branch.id === activeId)
+        ? activeId
+        : data.nodes.find((node) => node.id === activeId)?.branch ?? null;
 
   return (
     <section id="skill-tree" className="shell pb-10 md:pb-14">
@@ -348,33 +317,73 @@ export default function SkillTree({ data }: { data: TreeData }) {
           <div className="flex items-center justify-between border-b border-white/8 px-6 py-4">
             <div>
               <div className="text-xs uppercase tracking-[0.24em] text-slate-400">Desktop view</div>
-              <div className="mt-1 text-sm text-slate-300">A structured graph with lightweight contextual links</div>
+              <div className="mt-1 text-sm text-slate-300">A custom-rendered skill map with intentionally designed composition</div>
             </div>
-            <div className="text-xs text-slate-400">Drag, zoom, and click nodes to inspect them</div>
+            <div className="text-xs text-slate-400">Click nodes to inspect them</div>
           </div>
 
-          <div className="h-[820px]">
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              nodeOrigin={[0.5, 0.5]}
-              fitView
-              fitViewOptions={{ padding: 0.18, minZoom: 0.72 }}
-              minZoom={0.55}
-              maxZoom={1.35}
-              proOptions={{ hideAttribution: true }}
-              nodesDraggable={false}
-              elementsSelectable={false}
-              zoomOnDoubleClick={false}
-              panOnDrag
-              className="bg-transparent"
-              defaultEdgeOptions={{ type: 'soft' }}
-            >
-              <Background color="rgba(255,255,255,0.05)" gap={26} size={1} />
-              <Controls showInteractive={false} position="bottom-right" />
-            </ReactFlow>
+          <div className="relative h-[820px] overflow-hidden bg-[radial-gradient(circle_at_top,rgba(90,178,255,0.10),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(182,144,255,0.08),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.01))]">
+            <svg viewBox={`0 0 ${FRAME.width} ${FRAME.height}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
+              <defs>
+                <filter id="soft-glow" x="-40%" y="-40%" width="180%" height="180%">
+                  <feGaussianBlur stdDeviation="10" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {desktopGraph.hierarchyLinks.map((link) => {
+                const source = desktopGraph.byId.get(link.from);
+                const target = desktopGraph.byId.get(link.to);
+                if (!source || !target) return null;
+                const branchColor = target.kind === 'branch' ? target.color : source.color;
+                const active = activeId === 'root' || activeId === link.from || activeId === link.to || activeBranchId === link.from;
+
+                return (
+                  <path
+                    key={link.from + link.to}
+                    d={edgePath(source, target, 'hierarchy')}
+                    fill="none"
+                    stroke={branchColor}
+                    strokeOpacity={active ? 0.55 : 0.2}
+                    strokeWidth={active ? 2.4 : 1.5}
+                    filter={active ? 'url(#soft-glow)' : undefined}
+                  />
+                );
+              })}
+
+              {desktopGraph.contextLinks.map((link) => {
+                const source = desktopGraph.byId.get(link.from);
+                const target = desktopGraph.byId.get(link.to);
+                if (!source || !target) return null;
+                const visible = activeBranchId !== null && (link.from === activeBranchId || link.to === activeBranchId || link.from === activeId || link.to === activeId);
+                if (!visible) return null;
+
+                return (
+                  <path
+                    key={link.from + link.to}
+                    d={edgePath(source, target, 'context')}
+                    fill="none"
+                    stroke="rgba(255,255,255,0.22)"
+                    strokeWidth={1.35}
+                    strokeDasharray="7 10"
+                  />
+                );
+              })}
+            </svg>
+
+            <div className="absolute inset-0">
+              {desktopGraph.nodes.map((node) => (
+                <DesktopGraphCard
+                  key={node.id}
+                  node={node}
+                  active={activeId === node.id}
+                  onSelect={setActiveId}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
@@ -382,9 +391,7 @@ export default function SkillTree({ data }: { data: TreeData }) {
           <div className="text-xs uppercase tracking-[0.24em] text-slate-400">Focus</div>
           <h3 className="mt-3 text-2xl font-semibold text-white">{activeEntity.label}</h3>
           <div className="mt-3 h-1.5 w-20 rounded-full" style={{ background: activeBranchColor }} />
-          <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 md:text-base">
-            {'summary' in activeEntity ? activeEntity.summary : root.summary}
-          </p>
+          <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-300 md:text-base">{activeSummary}</p>
 
           {'tags' in activeEntity && Array.isArray(activeEntity.tags) && (
             <div className="mt-6 flex flex-wrap gap-2">
