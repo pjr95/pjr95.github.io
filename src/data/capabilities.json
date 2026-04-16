@@ -1,0 +1,64 @@
+{
+  "items": [
+    {
+      "title": "ML leadership with production responsibility",
+      "kicker": "Direction, delivery, and trust",
+      "summary": "I work at the point where machine learning stops being a promising idea and becomes something a business can rely on. That includes team leadership, delivery standards, and making sure the work survives contact with reality.",
+      "bullets": [
+        "Leading end-to-end ML work tied to meaningful business scope",
+        "Balancing model quality, operational constraints, and stakeholder needs",
+        "Building teams and practices that keep good work repeatable"
+      ]
+    },
+    {
+      "title": "AI applications beyond the demo layer",
+      "kicker": "Practical AI",
+      "summary": "I’m interested in AI systems that are genuinely useful, not just impressive in a screenshot. That means evaluation, iteration, and designing workflows that can hold up outside of a controlled demo.",
+      "bullets": [
+        "Agent workflows and applied LLM systems",
+        "Evaluation harnesses and quality-minded iteration",
+        "A bias toward utility, reliability, and grounded product value"
+      ]
+    },
+    {
+      "title": "Systems, cloud, and MLOps thinking",
+      "kicker": "Infrastructure that makes models usable",
+      "summary": "I care a lot about the systems around the models: orchestration, reproducibility, cloud platforms, deployment patterns, and the operational layer that turns technical work into something durable.",
+      "bullets": [
+        "Hands-on work across AWS, Azure, and GCP",
+        "Experience with SageMaker, ETL pipelines, analytics platforms, and production workflows",
+        "Strong focus on clean operational foundations, not just model output"
+      ]
+    },
+    {
+      "title": "Teaching and explanation as leverage",
+      "kicker": "Clarity",
+      "summary": "Teaching is not a side note in my profile. It reflects how I work in general: make difficult things understandable, help people build confidence, and create momentum through explanation.",
+      "bullets": [
+        "University teaching in statistics and introductory data science",
+        "Comfort translating technical depth for different audiences",
+        "A natural tendency to mentor, structure, and clarify"
+      ]
+    },
+    {
+      "title": "Leadership with business context",
+      "kicker": "Management that understands tradeoffs",
+      "summary": "My background in economics and management shapes how I lead. I tend to think in incentives, tradeoffs, uncertainty, and organizational constraints, which helps connect technical choices to business reality.",
+      "bullets": [
+        "Economics roots still visible in how I frame problems",
+        "Entrepreneurial and management experience beyond pure technical execution",
+        "Comfort moving between strategic questions and implementation detail"
+      ]
+    },
+    {
+      "title": "Breadth that still feels coherent",
+      "kicker": "The through-line",
+      "summary": "The common thread across my work is pretty simple: I like building systems, helping people grow, and making technical work useful. The domains vary, but the operating style is consistent.",
+      "bullets": [
+        "Technical depth without losing the human layer",
+        "Strong pull toward structure, rigor, and usefulness",
+        "A profile shaped by execution, teaching, and systems thinking together"
+      ]
+    }
+  ]
+}

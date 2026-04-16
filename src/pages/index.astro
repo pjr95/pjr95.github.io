@@ -1,14 +1,14 @@
 ---
 import Hero from '../components/Hero.astro';
 import Timeline from '../components/Timeline.astro';
-import SkillTree from '../components/SkillTree';
+import Capabilities from '../components/Capabilities.astro';
 import Highlights from '../components/Highlights.astro';
 import WhatIWorkOn from '../components/WhatIWorkOn.astro';
 import profile from '../data/profile.json';
-import tree from '../data/tree.json';
 import timeline from '../data/timeline.json';
 import highlights from '../data/highlights.json';
 import work from '../data/work.json';
+import capabilities from '../data/capabilities.json';
 import '../styles/global.css';
 ---
 
@@ -16,15 +16,15 @@ import '../styles/global.css';
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Pablo Romero | Career Skill Tree</title>
+    <title>Pablo Romero | AI, ML, Systems, and Teaching</title>
     <meta
       name="description"
-      content="An interactive CV for Pablo Romero, blending a career skill tree with a graph-style knowledge map."
+      content="A personal site for Pablo Romero, spanning AI, machine learning, systems, leadership, and teaching."
     />
   </head>
   <body>
     <Hero profile={profile} />
-    <SkillTree client:load data={tree} />
+    <Capabilities items={capabilities.items} />
     <WhatIWorkOn items={work.items} />
     <Highlights items={highlights.items} />
     <Timeline items={timeline.items} />
