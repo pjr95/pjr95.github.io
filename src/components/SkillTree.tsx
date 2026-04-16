@@ -64,46 +64,55 @@ const branchSummaries: Record<string, string> = {
 
 const FRAME = {
   width: 1160,
-  height: 820,
+  height: 860,
 };
 
 const ROOT_LAYOUT = {
   x: 580,
-  y: 332,
-  width: 240,
-  height: 98,
+  y: 420,
+  width: 256,
+  height: 106,
 };
 
 const BRANCH_LAYOUTS: Record<string, { x: number; y: number; width: number; height: number }> = {
-  'ai-ml': { x: 330, y: 148, width: 190, height: 58 },
-  leadership: { x: 640, y: 136, width: 190, height: 58 },
-  teaching: { x: 910, y: 254, width: 190, height: 58 },
-  architecture: { x: 296, y: 552, width: 220, height: 58 },
-  strategy: { x: 858, y: 556, width: 210, height: 58 },
+  'ai-ml': { x: 580, y: 176, width: 190, height: 58 },
+  leadership: { x: 816, y: 304, width: 190, height: 58 },
+  teaching: { x: 816, y: 576, width: 190, height: 58 },
+  strategy: { x: 580, y: 704, width: 210, height: 58 },
+  architecture: { x: 344, y: 576, width: 220, height: 58 },
 };
 
 const NODE_LAYOUTS: Record<string, { x: number; y: number; width: number; height: number }> = {
-  'better-collective': { x: 184, y: 286, width: 220, height: 96 },
-  governance: { x: 298, y: 430, width: 220, height: 96 },
-  agents: { x: 468, y: 252, width: 220, height: 96 },
-  'team-leadership': { x: 604, y: 254, width: 220, height: 96 },
-  amauta: { x: 772, y: 280, width: 220, height: 96 },
-  unc: { x: 984, y: 404, width: 220, height: 96 },
-  explanation: { x: 900, y: 490, width: 220, height: 96 },
-  cloud: { x: 226, y: 670, width: 220, height: 96 },
-  symplast: { x: 408, y: 676, width: 220, height: 96 },
-  economist: { x: 760, y: 680, width: 220, height: 96 },
-  'management-master': { x: 944, y: 674, width: 220, height: 96 },
+  'better-collective': { x: 422, y: 94, width: 220, height: 96 },
+  agents: { x: 580, y: 58, width: 220, height: 96 },
+  governance: { x: 738, y: 94, width: 220, height: 96 },
+  'team-leadership': { x: 958, y: 246, width: 220, height: 96 },
+  amauta: { x: 958, y: 372, width: 220, height: 96 },
+  unc: { x: 958, y: 512, width: 220, height: 96 },
+  explanation: { x: 958, y: 638, width: 220, height: 96 },
+  economist: { x: 422, y: 824, width: 220, height: 96 },
+  'management-master': { x: 738, y: 824, width: 220, height: 96 },
+  cloud: { x: 202, y: 512, width: 220, height: 96 },
+  symplast: { x: 202, y: 638, width: 220, height: 96 },
 };
 
 function edgePath(source: LayoutNode, target: LayoutNode, mode: 'hierarchy' | 'context') {
-  const startX = source.x;
-  const endX = target.x;
-  const startY = source.y + source.height / 2;
-  const endY = target.y - target.height / 2;
-  const verticalGap = Math.max(60, Math.abs(endY - startY) * (mode === 'context' ? 0.28 : 0.42));
+  const dx = target.x - source.x;
+  const dy = target.y - source.y;
+  const distance = Math.hypot(dx, dy) || 1;
+  const ux = dx / distance;
+  const uy = dy / distance;
+  const startX = source.x + ux * (source.width / 2);
+  const startY = source.y + uy * (source.height / 2);
+  const endX = target.x - ux * (target.width / 2);
+  const endY = target.y - uy * (target.height / 2);
+  const bend = mode === 'context' ? 0.12 : 0.18;
+  const c1x = startX + dx * 0.28 - dy * bend;
+  const c1y = startY + dy * 0.28 + dx * bend;
+  const c2x = endX - dx * 0.28 - dy * bend;
+  const c2y = endY - dy * 0.28 + dx * bend;
 
-  return `M ${startX} ${startY} C ${startX} ${startY + verticalGap}, ${endX} ${endY - verticalGap}, ${endX} ${endY}`;
+  return `M ${startX} ${startY} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${endX} ${endY}`;
 }
 
 function DesktopGraphCard({
@@ -322,7 +331,7 @@ export default function SkillTree({ data }: { data: TreeData }) {
             <div className="text-xs text-slate-400">Click nodes to inspect them</div>
           </div>
 
-          <div className="relative h-[820px] overflow-hidden bg-[radial-gradient(circle_at_top,rgba(90,178,255,0.10),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(182,144,255,0.08),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.01))]">
+          <div className="relative h-[860px] overflow-hidden bg-[radial-gradient(circle_at_center,rgba(90,178,255,0.12),transparent_24%),radial-gradient(circle_at_top,rgba(90,178,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(182,144,255,0.07),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.01))]">
             <svg viewBox={`0 0 ${FRAME.width} ${FRAME.height}`} className="absolute inset-0 h-full w-full" aria-hidden="true">
               <defs>
                 <filter id="soft-glow" x="-40%" y="-40%" width="180%" height="180%">
@@ -366,9 +375,9 @@ export default function SkillTree({ data }: { data: TreeData }) {
                     key={link.from + link.to}
                     d={edgePath(source, target, 'context')}
                     fill="none"
-                    stroke="rgba(255,255,255,0.22)"
-                    strokeWidth={1.35}
-                    strokeDasharray="7 10"
+                    stroke="rgba(255,255,255,0.18)"
+                    strokeWidth={1.15}
+                    strokeDasharray="5 8"
                   />
                 );
               })}
