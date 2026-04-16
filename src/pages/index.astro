@@ -1,14 +1,16 @@
 ---
 import Hero from '../components/Hero.astro';
 import Timeline from '../components/Timeline.astro';
-import Capabilities from '../components/Capabilities.astro';
+import Pillars from '../components/Pillars.astro';
 import Highlights from '../components/Highlights.astro';
-import WhatIWorkOn from '../components/WhatIWorkOn.astro';
+import HowIWork from '../components/HowIWork.astro';
+import CurrentFocus from '../components/CurrentFocus.astro';
 import profile from '../data/profile.json';
 import timeline from '../data/timeline.json';
 import highlights from '../data/highlights.json';
-import work from '../data/work.json';
-import capabilities from '../data/capabilities.json';
+import pillars from '../data/pillars.json';
+import howIWork from '../data/how-i-work.json';
+import currentFocus from '../data/current-focus.json';
 import '../styles/global.css';
 ---
 
@@ -24,9 +26,10 @@ import '../styles/global.css';
   </head>
   <body>
     <Hero profile={profile} />
-    <Capabilities items={capabilities.items} />
-    <WhatIWorkOn items={work.items} />
+    <Pillars items={pillars.items} />
     <Highlights items={highlights.items} />
+    <HowIWork items={howIWork.items} />
+    <CurrentFocus items={currentFocus.items} />
     <Timeline items={timeline.items} />
   </body>
 </html>

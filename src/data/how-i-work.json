@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "title": "Rigorous",
+      "summary": "I care about quality, reliability, and systems that can be trusted beyond the first good demo."
+    },
+    {
+      "title": "Practical",
+      "summary": "I like work that survives real constraints, helps real decisions, and creates durable value."
+    },
+    {
+      "title": "Clear",
+      "summary": "A big part of my style is explanation: reducing complexity without flattening the truth."
+    }
+  ]
+}

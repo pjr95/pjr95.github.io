@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "title": "AI & ML",
+      "summary": "Applied machine learning work with real operational and business responsibility."
+    },
+    {
+      "title": "Systems",
+      "summary": "Cloud, MLOps, and the technical foundations that make models usable in practice."
+    },
+    {
+      "title": "Leadership",
+      "summary": "Building teams, creating direction, and helping technical work land inside organizations."
+    },
+    {
+      "title": "Teaching",
+      "summary": "Turning difficult ideas into clarity, confidence, and practical understanding."
+    },
+    {
+      "title": "Strategy",
+      "summary": "Economics-shaped thinking about incentives, tradeoffs, and long-term decisions."
+    }
+  ]
+}

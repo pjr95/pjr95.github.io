@@ -25,7 +25,7 @@ const { profile } = Astro.props;
         <p class="mt-5 text-lg font-medium text-sky-100/95 md:text-xl">{profile.tagline}</p>
         <p class="mt-5 max-w-xl text-base leading-7 text-slate-300 md:text-lg">{profile.summary}</p>
         <div class="mt-6 flex flex-wrap gap-3">
-          <a class="rounded-full bg-sky-400 px-5 py-2.5 text-sm font-medium text-slate-950 transition hover:bg-sky-300" href="#capabilities">View capabilities</a>
+          <a class="rounded-full bg-sky-400 px-5 py-2.5 text-sm font-medium text-slate-950 transition hover:bg-sky-300" href="#pillars">Explore profile</a>
           <a class="rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-slate-100 transition hover:border-sky-300/50 hover:bg-white/5" href={profile.links.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
           <a class="rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-slate-100 transition hover:border-sky-300/50 hover:bg-white/5" href={profile.links.email}>Email</a>
         </div>
